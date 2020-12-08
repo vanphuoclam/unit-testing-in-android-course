@@ -38,11 +38,33 @@ public class FetchUserProfileUseCaseSyncTest {
         SUT.fetchUserProfileSync(USER_ID);
         User user = usersCacheTd.getUser(USER_ID);
         Assert.assertThat(user.getUserId(), is(USER_ID));
+        Assert.assertThat(usersCacheTd.mInteractionsCount, is(1));
     }
 
     @Test
-    public void fetchUserProfileSync_fail_user_is_not_cached() {
+    public void fetchUserProfileSync_general_error_user_is_not_cached() {
         userProfileHttpEndpointSyncTd.mIsGeneralError = true;
+        SUT.fetchUserProfileSync(USER_ID);
+        Assert.assertThat(usersCacheTd.mInteractionsCount, is(0));
+    }
+
+    @Test
+    public void fetchUserProfileSync_auth_er_user_is_not_cached() {
+        userProfileHttpEndpointSyncTd.mIsAuthError = true;
+        SUT.fetchUserProfileSync(USER_ID);
+        Assert.assertThat(usersCacheTd.mInteractionsCount, is(0));
+    }
+
+    @Test
+    public void fetchUserProfileSync_server_error_user_is_not_cached() {
+        userProfileHttpEndpointSyncTd.mIsServerError = true;
+        SUT.fetchUserProfileSync(USER_ID);
+        Assert.assertThat(usersCacheTd.mInteractionsCount, is(0));
+    }
+
+    @Test
+    public void fetchUserProfileSync_network_error_user_is_not_cached() {
+        userProfileHttpEndpointSyncTd.mIsNetworkError = true;
         SUT.fetchUserProfileSync(USER_ID);
         Assert.assertThat(usersCacheTd.mInteractionsCount, is(0));
     }
@@ -75,11 +97,14 @@ public class FetchUserProfileUseCaseSyncTest {
     }
 
     @Test
-    public void fetchUserProfileSync_networt_error_failedReturned() {
-        userProfileHttpEndpointSyncTd.mIsGeneralError = true;
+    public void fetchUserProfileSync_networt_error_networkErrorReturned() {
+        userProfileHttpEndpointSyncTd.mIsNetworkError = true;
         UseCaseResult res = SUT.fetchUserProfileSync(USER_ID);
         Assert.assertThat(res, is(UseCaseResult.NETWORK_ERROR));
     }
+
+    //----------------------------------------------------------------------------------------------
+    // Helper classes
 
     private class UserProfileHttpEndpointSyncTd implements UserProfileHttpEndpointSync {
         public String mUserId;

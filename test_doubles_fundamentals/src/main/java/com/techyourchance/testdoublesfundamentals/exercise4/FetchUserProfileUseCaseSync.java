@@ -27,22 +27,25 @@ public class FetchUserProfileUseCaseSync {
         EndpointResult endpointResult;
         try {
             // the bug here is that userId is not passed to endpoint
-            endpointResult = mUserProfileHttpEndpointSync.getUserProfile("");
+            endpointResult = mUserProfileHttpEndpointSync.getUserProfile(userId);
             // the bug here is that I don't check for successful result and it's also a duplication
             // of the call later in this method
+            if(isSuccessfulEndpointResult(endpointResult))
             mUsersCache.cacheUser(
                     new User(userId, endpointResult.getFullName(), endpointResult.getImageUrl()));
         } catch (NetworkErrorException e) {
             return UseCaseResult.NETWORK_ERROR;
         }
 
-        if (isSuccessfulEndpointResult(endpointResult)) {
-            mUsersCache.cacheUser(
-                    new User(userId, endpointResult.getFullName(), endpointResult.getImageUrl()));
-        }
+//        if (isSuccessfulEndpointResult(endpointResult)) {
+//            mUsersCache.cacheUser(
+//                    new User(userId, endpointResult.getFullName(), endpointResult.getImageUrl()));
+//        }
 
         // the bug here is that I return wrong result in case of an unsuccessful server response
-        return UseCaseResult.SUCCESS;
+        if(isSuccessfulEndpointResult(endpointResult))
+            return UseCaseResult.SUCCESS;
+        else return UseCaseResult.FAILURE;
     }
 
     private boolean isSuccessfulEndpointResult(EndpointResult endpointResult) {
